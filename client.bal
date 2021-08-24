@@ -9,7 +9,7 @@ public isolated client class Client {
         self.clientEp = httpEp;
     }
 
-    // Generic mutation function. Can use for every mutation scenario (Option 1)
+    // Generic function. Can use for every mutation scenario (Option 1)
     remote isolated function mutation(string query, json? variables = ()) returns json|error {
         http:Request request = new;
         json params = {
@@ -20,7 +20,6 @@ public isolated client class Client {
         return check self.clientEp-> post("", request, targetType = json);
     }
 
-    // Generic mutation function. Can use for every mutation scenario (Option 1)
     remote isolated function query(string query, json? variables = ()) returns json|error {
         http:Request request = new;
         json params = {
@@ -31,27 +30,64 @@ public isolated client class Client {
         return check self.clientEp-> post("", request, targetType = json);
     }
 
-    // Re-engineered mutation functions (Option 3)
-    remote isolated function insertUser(string query, InsertUserVariables? variables = ()) returns json|error {
+    // Mutations
+    remote isolated function insertUser(string query, UserInsertInput[] objects, UsersOnConflict? on_conflict = ()) returns UsersMutationResponse|error {
         http:Request request = new;
         ObjectParameters params = {
             query: query,
-            variables: variables.toJson()
+            variables: {
+                objects: objects.toJson(),
+                on_conflict: on_conflict.toJson()
+            }
         };
         request.setPayload(params.toJson());
-        return check self.clientEp-> post("", request, targetType = json);
+        json response = check self.clientEp-> post("", request, targetType = json);
+        json data = check response.data.insert_users;
+        return check data.cloneWithType(UsersMutationResponse);
     }
 
-    // Re-engineered query functions (Option 3)
-    remote isolated function getDragons(string query, GetDragonVariables? variables = ()) returns json|error {
+    remote isolated function updateUser(string query, UsersBoolExp 'where, UsersSetInput? _set = ()) returns UsersMutationResponse|error {
+        http:Request request = new;
+        ObjectParameters params = {
+            query: query,
+            variables: {
+                'where: 'where.toJson(),
+                _set: _set.toJson()
+            }
+        };
+        request.setPayload(params.toJson());
+        json response = check self.clientEp-> post("", request, targetType = json);
+        json data = check response.data.update_users;
+        return check data.cloneWithType(UsersMutationResponse);
+    }
+
+    remote isolated function deleteUser(string query, UsersBoolExp 'where) returns UsersMutationResponse|error {
+        http:Request request = new;
+        ObjectParameters params = {
+            query: query,
+            variables: {
+                'where: 'where.toJson()
+            }
+        };
+        request.setPayload(params.toJson());
+        json response = check self.clientEp-> post("", request, targetType = json);
+        json data = check response.data.delete_users;
+        return check data.cloneWithType(UsersMutationResponse);
+    }
+
+    //Queries
+    remote isolated function getDragons(string query, int? 'limit = (), int? offset = ()) returns Dragon[]|error {
         http:Request request = new;      
         ObjectParameters params = {
             query: query,
-            variables: variables.toJson()
+            variables: {
+                'limit : 'limit.toJson(),
+                offset : offset.toJson()
+            }
         };
         request.setPayload(params.toJson());
-        return check self.clientEp-> post("", request, targetType = json);
+        json response = check self.clientEp-> post("", request, targetType = json);
+        json data = check response.data.dragons;
+        return check data.cloneWithType(DragonArray);
     }
-
 }
-

@@ -1,5 +1,4 @@
 import ballerina/http;
-//import ballerina/io;
 
 public isolated client class Client {
     final http:Client clientEp;
@@ -9,141 +8,71 @@ public isolated client class Client {
         self.clientEp = httpEp;
     }
 
-    //Generic function. Can use for every mutation scenario (Option 1)
-    remote isolated function mutation(string query, UserInsertInput[]? objects = (), UsersOnConflict? on_conflict = (), UsersBoolExp? updateUserWhere = (), UsersSetInput? _set = (), UsersBoolExp? deleteUserWhere = (), map<anydata>? additionalVariables = ()) returns MutationResponse|error? {
+    //Generic function. Can use for every mutation and query scenario
+    remote isolated function mutation(string query, UserInsertInput[]? objects = (), UsersOnConflict? on_conflict = (), 
+                                      UsersBoolExp? updateUserWhere = (), UsersSetInput? _set = (), 
+                                      UsersBoolExp? deleteUserWhere = (), map<anydata>? additionalVariables = ()) 
+                                      returns MutationResponse|error {
         http:Request request = new;
-        json variables = {
-            objects: objects.toJson(),
-            on_conflict: on_conflict.toJson(),
-            updateUserWhere: updateUserWhere.toJson(),
-            _set: _set.toJson(),
-            deleteUserWhere: deleteUserWhere.toJson()
-        };
-        variables = check variables.mergeJson(additionalVariables.toJson());
-        json params = {
-            query: query,
-            variables: {}
-        };
-        request.setPayload(params.toJson());
-        json response = check self.clientEp-> post("", request, targetType = json);
-        json data = check response.data;
-        if (data is ()) {
-            return;
-        }
-        return check data.cloneWithType(MutationResponse);
+        map<anydata> definedVaribale = {"objects" : objects, "on_conflict" : on_conflict, 
+            "updateUserWhere" : updateUserWhere, "_set" : _set, "deleteUserWhere" : deleteUserWhere, 
+            "additionalVariables" : additionalVariables };
+        json graphQlPayload = check getRequestPayload(query, definedVaribale, additionalVariables);
+        request.setPayload(graphQlPayload);        
+        return check self.clientEp-> post("", request, targetType = MutationResponse);
     }
 
-    remote isolated function query(string query, string? id = (), int? 'limit = (), int? offset = (), map<anydata>? additionalVariables = ()) returns QueryResponse|error? {
+    remote isolated function query(string query, string? id = (), int? 'limit = (), int? offset = (), 
+                                   map<anydata>? additionalVariables = ()) returns QueryResponse|error {
         http:Request request = new;
-        json variables = {
-            id: id.toJson(),
-            'limit: 'limit.toJson(),
-            offset: offset.toJson()
-        };
-        variables = check variables.mergeJson(additionalVariables.toJson());
-        json params = {
-            query: query,
-            variables: variables
-        };
-        request.setPayload(params);
-        json response = check self.clientEp-> post("", request, targetType = json);
-        json data = check response.data;
-        if (data is ()) {
-            return;
-        }
-        return check data.cloneWithType(QueryResponse);
+        map<anydata> definedVaribale = {"id" : id, "limit" : 'limit, "offset" : offset};
+        json graphQlPayload = check getRequestPayload(query, definedVaribale, additionalVariables);
+        request.setPayload(graphQlPayload);         
+        return check self.clientEp-> post("", request, targetType = QueryResponse);
     }
 
     // Mutations
-    remote isolated function insertUser(string query, UserInsertInput[] objects, UsersOnConflict? on_conflict = ()) returns UsersMutationResponse|error? {
+    remote isolated function insertUser(string query, UserInsertInput[] objects, UsersOnConflict? on_conflict = ()) 
+                                        returns UsersInsertResponse|error {
         http:Request request = new;
-        json variables = {
-            objects: objects.toJson(),
-            on_conflict: on_conflict.toJson()
-        };
-        ObjectParameters params = {
-            query: query,
-            variables: variables
-        };
-        request.setPayload(params.toJson());
-        json response = check self.clientEp-> post("", request, targetType = json);
-        json data = check response.data.insert_users;
-        if (data is ()) {
-            return;
-        }
-        return check data.cloneWithType(UsersMutationResponse);
+        map<anydata> variables = { "objects" : objects, "on_conflict" : on_conflict };
+        json graphQlPayload = check getRequestPayload(query, variables);
+        request.setPayload(graphQlPayload);         
+        return check self.clientEp-> post("", request, targetType = UsersInsertResponse);
     }
 
-    remote isolated function updateUser(string query, UsersBoolExp 'where, UsersSetInput? _set = ()) returns UsersMutationResponse|error? {
+    remote isolated function updateUser(string query, UsersBoolExp 'where, UsersSetInput? _set = ()) 
+                                        returns UserUpdateResponse|error {
         http:Request request = new;
-        json variables = {
-            'where: 'where.toJson(),
-            _set: _set.toJson()
-        };
-        ObjectParameters params = {
-            query: query,
-            variables: variables
-        };
-        request.setPayload(params.toJson());
-        json response = check self.clientEp-> post("", request, targetType = json);
-        json data = check response.data.update_users;
-        if (data is ()) {
-            return;
-        }
-        return check data.cloneWithType(UsersMutationResponse);
+        map<anydata> variables = { "where" : 'where, "_set" : _set };        
+        json graphQlPayload = check getRequestPayload(query, variables);
+        request.setPayload(graphQlPayload);         
+        return check self.clientEp-> post("", request, targetType = UserUpdateResponse);
     }
 
-    remote isolated function deleteUser(string query, UsersBoolExp 'where) returns UsersMutationResponse|error? {
+    remote isolated function deleteUser(string query, UsersBoolExp 'where) returns UsersDeleteResponse|error {
         http:Request request = new;
-        json variables = {
-            'where: 'where.toJson()
-        };
-        ObjectParameters params = {
-            query: query,
-            variables: variables
-        };
-        request.setPayload(params.toJson());
-        json response = check self.clientEp-> post("", request, targetType = json);
-        json data = check response.data.delete_users;
-        if (data is ()) {
-            return;
-        }
-        return check data.cloneWithType(UsersMutationResponse);
+        map<anydata> variables = { "where" : 'where };        
+        json graphQlPayload = check getRequestPayload(query, variables);
+        request.setPayload(graphQlPayload);         
+        return check self.clientEp-> post("", request, targetType = UsersDeleteResponse);
     }
 
-    //Queries
-    remote isolated function getDragon(string query, string id) returns Dragon|error? {
+    // Queries
+    remote isolated function getDragon(string query, string id) returns DragonResponse|error {
         http:Request request = new;      
-        ObjectParameters params = {
-            query: query,
-            variables: {
-                id : 'id.toJson()
-            }
-        };
-        request.setPayload(params.toJson());
-        json response = check self.clientEp-> post("", request, targetType = json);
-        json data = check response.data.dragon;
-        if (data is ()) {
-            return;
-        }
-        return check data.cloneWithType(Dragon);
+        map<anydata> variables = { "id" : id };        
+        json graphQlPayload = check getRequestPayload(query, variables);
+        request.setPayload(graphQlPayload);         
+        return check self.clientEp-> post("", request, targetType = DragonResponse);
     }
 
-    remote isolated function getDragons(string query, int? 'limit = (), int? offset = ()) returns Dragon?[]|error? {
+    remote isolated function getDragons(string query, int? 'limit = (), int? offset = ()) 
+                                        returns DragonsResponse|error {
         http:Request request = new;      
-        ObjectParameters params = {
-            query: query,
-            variables: {
-                'limit : 'limit.toJson(),
-                offset : offset.toJson()
-            }
-        };
-        request.setPayload(params.toJson());
-        json response = check self.clientEp-> post("", request, targetType = json);
-        json data = check response.data.dragons;
-        if (data is ()) {
-            return;
-        }
-        return check data.cloneWithType(DragonArray);
+        map<anydata> variables = { "limit" : 'limit, "offset" : offset };       
+        json graphQlPayload = check getRequestPayload(query, variables);
+        request.setPayload(graphQlPayload); 
+        return check self.clientEp-> post("", request, targetType = DragonsResponse);
     }
 }

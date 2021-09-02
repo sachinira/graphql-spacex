@@ -35,7 +35,48 @@ public type UsersUpdateInput record {
 public type UsersMutationResponse record {
     int affected_rows;
     Users[]? returning?;
+};
+
+public type UsersDeleteData record {
+   UsersMutationResponse? delete_users?;
+};
+
+public type UsersUpdateData record {
+   UsersMutationResponse? update_users?;
+};
+
+public type UsersInsertData record {
+   UsersMutationResponse? insert_users?;
+};
+
+public type UsersDeleteResponse record {
+    UsersDeleteData? data?;
+    Error[]? errors?;
+    record {}? extensions?;
 }; 
+
+public type UsersInsertResponse record {
+    UsersInsertData? data?;
+    Error[]? errors?;
+    record {}? extensions?;
+}; 
+
+public type UserUpdateResponse record {
+    UsersUpdateData? data?;
+    Error[]? errors?;
+    record {}? extensions?;
+}; 
+
+public type Error record {
+    string message;
+    Location[]? locations?;
+    record {}? extensions?;
+};
+
+public type Location record {
+    int line?;
+    int column?;
+};
 
 public type Users record {
     string id?;
@@ -44,7 +85,6 @@ public type Users record {
     string? twitter?;
     string timestamp?;
 };
-
 
 public type UsersSetInput record {
     string id?;
@@ -120,6 +160,26 @@ public type Dragon record {
     string? wikipedia?;
 };
 
+public type DragonResponse record {
+    DragonData? data?;
+    Error[]? errors?;
+    record {}? extensions?;
+}; 
+
+public type DragonData record {
+    Dragon? dragon?;
+};
+
+public type DragonsResponse record {
+    DragonsData data?;
+    Error[]? errors?;
+    record {}? extensions?;
+}; 
+
+public type DragonsData record {
+    Dragon?[]? dragons?;
+};
+
 public type Distance record {
     float? feet?;
     float? meters?;
@@ -172,13 +232,25 @@ public type DragonTrunkCargo record {
 
 public type DragonArray Dragon?[];
 
-public type MutationResponse record {
+public type MutationData record {
    UsersMutationResponse? insert_users?;
    UsersMutationResponse? delete_users?;
    UsersMutationResponse? update_users?;
 };
 
-public type QueryResponse record {
+public type MutationResponse record {
+    MutationData? data?;
+    Error[]? errors?;
+    record {}? extensions?;
+};
+
+public type QueryData record {
     Dragon? dragon?;
     Dragon?[]? dragons?;
+};
+
+public type QueryResponse record {
+    MutationData? data?;
+    Error[]? errors?;
+    record {}? extensions?;
 };
